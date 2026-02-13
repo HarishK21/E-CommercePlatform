@@ -14,6 +14,31 @@ const ProductDetails = () => {
     
     const user = JSON.parse(localStorage.getItem("user") || "null");
 
+    const addToCart = () => {
+        // Get existing cart or initialize empty array
+        const currentCart = JSON.parse(localStorage.getItem("cart") || "[]");
+        
+        // Check if item already exists
+        const existingItemIndex = currentCart.findIndex((item) => item.id === product.id);
+
+        if (existingItemIndex > -1) {
+            // Increment quantity
+            currentCart[existingItemIndex].quantity = (currentCart[existingItemIndex].quantity || 1) + 1;
+        } else {
+            // Add new item
+            currentCart.push({ ...product, quantity: 1 });
+        }
+
+        // Save back to local storage
+        localStorage.setItem("cart", JSON.stringify(currentCart));
+        
+        // Trigger a simple alert for demo purposes
+        alert(`Added ${product.name} to cart!`);
+        
+        // Optional: Dispatch event to update Navbar count immediately if it listens for it
+        window.dispatchEvent(new Event("storage"));
+    };
+
     useEffect(() => {
         if (!user) navigate("/login");
     }, [user, navigate]);
@@ -132,7 +157,7 @@ const ProductDetails = () => {
                                 ${product.price}
                             </div>
 
-                        <button type="button" className="addToCartBtn">
+                        <button type="button" className="addToCartBtn" onClick={addToCart}>
                             Add to Cart
                         </button>
                     </div>
