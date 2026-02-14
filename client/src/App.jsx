@@ -3,6 +3,7 @@ import Login from './Components/Auth/Login'
 import Register from './Components/Auth/Register'
 import Home from './Components/Store/Home'
 import ProductDetails from './Components/Store/ProductDetails'
+import Checkout from './Components/Checkout/Checkout'
 
 function App() {
   return (
@@ -12,7 +13,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/home" element={<Home />} />
-        <Route path="/checkout" element={<div style={{ padding: 24, color: "white" }}>Checkout page (WIP)</div>} />
+        <Route path="/checkout" element={<Checkout />} />
         <Route path="/product/:id" element={<ProductDetails />} />
       </Routes>
     </Router>

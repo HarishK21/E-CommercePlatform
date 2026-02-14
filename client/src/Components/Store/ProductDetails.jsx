@@ -39,6 +39,40 @@ const ProductDetails = () => {
         window.dispatchEvent(new Event("storage"));
     };
 
+    const deleteProduct = async () => {
+        if (!window.confirm(`Are you sure you want to delete "${product.name}"?`)) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`http://localhost:8080/api/items/${product.id}`, {
+                method: 'DELETE'
+            });
+            
+                if (response.ok) {
+                    // Remove any matching items from localStorage cart
+                    try {
+                        const currentCart = JSON.parse(localStorage.getItem('cart') || '[]');
+                        const updatedCart = currentCart.filter((it) => it.id !== product.id);
+                        localStorage.setItem('cart', JSON.stringify(updatedCart));
+                        // Notify other parts of the app
+                        window.dispatchEvent(new Event('storage'));
+                        window.dispatchEvent(new Event('cartUpdated'));
+                    } catch (e) {
+                        console.warn('Failed to update local cart after deletion', e);
+                    }
+
+                    alert('Product deleted successfully!');
+                    navigate('/home');
+                } else {
+                    alert('Failed to delete product');
+                }
+        } catch (error) {
+            console.error('Error deleting product:', error);
+            alert('Error deleting product');
+        }
+    };
+
     useEffect(() => {
         if (!user) navigate("/login");
     }, [user, navigate]);
@@ -157,9 +191,25 @@ const ProductDetails = () => {
                                 ${product.price}
                             </div>
 
-                        <button type="button" className="addToCartBtn" onClick={addToCart}>
-                            Add to Cart
-                        </button>
+                        <div style={{ display: 'flex', gap: '12px' }}>
+                            <button type="button" className="addToCartBtn" onClick={addToCart} style={{ flex: 1 }}>
+                                Add to Cart
+                            </button>
+                            <button type="button" className="addToCartBtn" onClick={() => navigate("/home")} style={{ 
+                                flex: 1,
+                                background: 'rgba(255,255,255,0.06)',
+                                border: '1px solid rgba(255,255,255,0.14)'
+                            }}>
+                                Back to Home
+                            </button>
+                            <button type="button" className="addToCartBtn" onClick={deleteProduct} style={{ 
+                                flex: 1,
+                                background: '#ff4444',
+                                border: '1px solid rgba(255, 68, 68, 0.3)'
+                            }}>
+                                Delete Product
+                            </button>
+                        </div>
                     </div>
                 </div>
             </main>

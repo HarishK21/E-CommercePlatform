@@ -7,7 +7,7 @@ export default function Home() {
   const [items, setItems] = useState([]);
   const [search, setSearch] = useState("");
 
-  // NEW: theme state
+  // theme state
   const [theme, setTheme] = useState(() => {
     return localStorage.getItem("theme") || "dark";
   });
@@ -32,7 +32,7 @@ export default function Home() {
     return items.filter((it) => it.name.toLowerCase().includes(q));
   }, [items, search]);
 
-  // NEW: apply theme to entire page
+  // apply theme to entire page
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
     localStorage.setItem("theme", theme);
@@ -45,6 +45,63 @@ export default function Home() {
 
   const toggleTheme = () => {
     setTheme((t) => (t === "dark" ? "light" : "dark"));
+  };
+
+  // Add item modal state
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [newItem, setNewItem] = useState({
+    name: '',
+    description: '',
+    postedBy: '',
+    price: '',
+    hasImage: false,
+    imageURL: ''
+  });
+
+  const openAddForm = () => setShowAddForm(true);
+  const closeAddForm = () => setShowAddForm(false);
+
+  const handleNewItemChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setNewItem((prev) => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
+  };
+
+  const submitNewItem = async (e) => {
+    e.preventDefault();
+    if (!newItem.name || newItem.price === '') {
+      alert('Please enter item name and price');
+      return;
+    }
+
+    try {
+      const resp = await fetch('http://localhost:8080/api/items', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: newItem.name,
+          description: newItem.description,
+          postedBy: newItem.postedBy,
+          price: Number(newItem.price),
+          hasImage: !!newItem.hasImage,
+          imageURL: newItem.imageURL
+        })
+      });
+
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({}));
+        alert(err.message || 'Failed to add item');
+        return;
+      }
+
+      const created = await resp.json();
+      // prepend to items list
+      setItems((prev) => [created, ...prev]);
+      setNewItem({ name: '', description: '', postedBy: '', price: '', hasImage: false, imageURL: '' });
+      closeAddForm();
+    } catch (err) {
+      console.error('Error adding item', err);
+      alert('Error adding item');
+    }
   };
 
   return (
@@ -65,7 +122,19 @@ export default function Home() {
 
           {/* RIGHT SIDE: items badge + theme toggle */}
           <div className="home__controls">
-            <div className="badge">{filtered.length} items</div>
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              <div className="badge">{filtered.length} items</div>
+
+              <button
+                type="button"
+                className="themeToggle"
+                onClick={openAddForm}
+                title="Add new item"
+                style={{ padding: '6px 10px', borderRadius: 15 }}
+              >
+                ➕ Add Item
+              </button>
+            </div>
 
             <button
               type="button"
@@ -82,57 +151,86 @@ export default function Home() {
           </div>
         </div>
 
-        {filtered.length === 0 && search.trim() !== "" ? (
-            <div className="noResults">
-                No items found
+        {/* Add Item */}
+        {showAddForm && (
+          <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 60 }}>
+            <div style={{ width: '680px', maxWidth: '95%', background: 'var(--panel)', padding: 20, borderRadius: 10 }}>
+              <h3 style={{ marginTop: 0 }}>Add New Item</h3>
+              <form onSubmit={submitNewItem}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                  <input name="name" placeholder="Name" value={newItem.name} onChange={handleNewItemChange} required />
+                  <input name="postedBy" placeholder="Posted By" value={newItem.postedBy} onChange={handleNewItemChange} />
+                  <input name="price" placeholder="Price" value={newItem.price} onChange={handleNewItemChange} required />
+                  <input name="imageURL" placeholder="Image URL" value={newItem.imageURL} onChange={handleNewItemChange} />
+                </div>
+                <div style={{ marginTop: 10 }}>
+                  <textarea name="description" placeholder="Description" value={newItem.description} onChange={handleNewItemChange} rows={4} style={{ width: '100%' }} />
+                </div>
+                <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <input type="checkbox" name="hasImage" checked={newItem.hasImage} onChange={handleNewItemChange} /> Has Image
+                  </label>
+                </div>
+                <div style={{ marginTop: 12, display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+                  <button type="button" onClick={closeAddForm}>Cancel</button>
+                  <button type="submit">Add Item</button>
+                </div>
+              </form>
             </div>
-            ) : (
-              <div className="grid">
-              {filtered.map((item) => (
+          </div>
+        )}
+
+        {filtered.length === 0 && search.trim() !== "" ? (
+          <div className="noResults">
+            No items found
+          </div>
+        ) : (
+          <div className="grid">
+            {filtered.map((item) => (
               <div key={item.id} className="card">
-                  {/* NEW: Image thumbnail */}
-                  <div style={{
-                      height: '180px',
-                      marginBottom: '10px',
-                      background: 'rgba(255,255,255,0.02)',
-                      borderRadius: '8px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      overflow: 'hidden'
-                  }}>
-                      {item.hasImage ? (
-                          <img 
-                              src={item.imageURL.startsWith('http') ? item.imageURL : `${window.location.origin}${item.imageURL}`}
-                              alt={item.name}
-                              style={{
-                                  maxWidth: '100%',
-                                  maxHeight: '100%',
-                                  objectFit: 'contain'
-                              }}
-                              onError={(e) => { e.target.style.display = 'none'; }} 
-                          />
-                      ) : (
-                          <div style={{ color: 'var(--home-subtext)', fontSize: '0.8rem' }}>No Image</div>
-                      )}
-                  </div>
+                {/* Image thumbnail */}
+                <div style={{
+                  height: '180px',
+                  marginBottom: '10px',
+                  background: 'rgba(255,255,255,0.02)',
+                  borderRadius: '8px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  overflow: 'hidden'
+                }}>
+                  {item.hasImage ? (
+                    <img
+                      src={item.imageURL.startsWith('http') ? item.imageURL : `${window.location.origin}${item.imageURL}`}
+                      alt={item.name}
+                      style={{
+                        maxWidth: '100%',
+                        maxHeight: '100%',
+                        objectFit: 'contain'
+                      }}
+                      onError={(e) => { e.target.style.display = 'none'; }}
+                    />
+                  ) : (
+                    <div style={{ color: 'var(--home-subtext)', fontSize: '0.8rem' }}>No Image</div>
+                  )}
+                </div>
 
-                  <h3 className="card__name">{item.name}</h3>
+                <h3 className="card__name">{item.name}</h3>
 
-                  <div className="card__meta">
-                      <div className="card__price">${item.price}</div>
-                  </div>
+                <div className="card__meta">
+                  <div className="card__price">${item.price}</div>
+                </div>
 
-                  <Link className="card__link" to={`/product/${item.id}`}>
-                      View Details
-                  </Link>
+                <Link className="card__link" to={`/product/${item.id}`}>
+                  View Details
+                </Link>
               </div>
-              ))}
+            ))}
           </div>
         )}
       </main>
 
-      {/* NEW: footer fills that empty bottom space nicely */}
+      {/* footer for bottom space */}
       <footer className="footer">
         <div className="footer__inner">
           <div className="footer__brand">shoply</div>

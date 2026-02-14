@@ -1,8 +1,42 @@
 import { Link, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
 import "./Navbar.css";
 
 export default function Navbar({ user, onLogout, onSearchChange, searchValue }) {
   const navigate = useNavigate();
+  const [cartCount, setCartCount] = useState(0);
+
+  useEffect(() => {
+    // Get initial cart count from localStorage
+    const updateCartCount = () => {
+      const cart = localStorage.getItem("cart");
+      if (cart) {
+        const items = JSON.parse(cart);
+        if (Array.isArray(items)) {
+          // Sum up quantities for all items to count total items including duplicates
+          const count = items.reduce((total, item) => total + (item.quantity || 1), 0);
+          setCartCount(count);
+        } else {
+          setCartCount(0);
+        }
+      } else {
+        setCartCount(0);
+      }
+    };
+
+    updateCartCount();
+
+    // Listen for storage changes 
+    window.addEventListener("storage", updateCartCount);
+    
+    // Event listener for same-tab cart updates
+    window.addEventListener("cartUpdated", updateCartCount);
+
+    return () => {
+      window.removeEventListener("storage", updateCartCount);
+      window.removeEventListener("cartUpdated", updateCartCount);
+    };
+  }, []);
 
   return (
     <header className="nav">
@@ -14,7 +48,7 @@ export default function Navbar({ user, onLogout, onSearchChange, searchValue }) 
 
           <nav className="nav__links">
             <Link to="/home" className="nav__link">Home</Link>
-            <Link to="/checkout" className="nav__link">Checkout</Link>
+            {/* <Link to="/checkout" className="nav__link">Checkout</Link> */}
           </nav>
         </div>
 
@@ -31,6 +65,11 @@ export default function Navbar({ user, onLogout, onSearchChange, searchValue }) 
         </div>
 
         <div className="nav__right">
+          <button className="nav__cart" onClick={() => navigate("/checkout")}>
+            <span className="nav__cartIcon">🛒</span>
+            {cartCount > 0 && <span className="nav__cartBadge">{cartCount}</span>}
+          </button>
+
           <div className="nav__user">
             <div className="nav__avatar">
               {(user?.name?.[0] || "U").toUpperCase()}

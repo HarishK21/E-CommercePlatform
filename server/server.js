@@ -34,7 +34,7 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, '/views/index.html'));
 });
 
-// Store items array
+// Store items array, posts and deletes will reset on server restart.
 let store_items = [
     {
         id: 1,
@@ -120,31 +120,79 @@ let store_items = [
 ];
 
 // API Routes
+
 // Get all store items
 app.get('/api/items', (req, res) => {
-    res.json(store_items);
+    return res.status(200).json(store_items);
 });
 
 // Get single item
 app.get('/api/items/:id', (req, res) => {
     const item = store_items.find(i => i.id === parseInt(req.params.id));
     if (item) {
-        res.json(item);
-    } else {
-        res.status(404).json({ message: 'Item not found' });
+        return res.status(200).json(item);
     }
+
+    return res.status(404).json({ success: false, message: 'Item not found' });
 });
 
-// Register endpoint
+// Create new store item
+app.post('/api/items', (req, res) => {
+    const { name, description, postedBy, price, hasImage, imageURL } = req.body;
+
+    if (!name || typeof price === 'undefined') {
+        return res.status(400).json({ success: false, message: 'Missing required fields: name, price' });
+    }
+
+    // Auto increment ID based on existing items
+    const nextId = store_items.reduce((max, it) => Math.max(max, it.id), 0) + 1;
+    const newItem = {
+        id: nextId,
+        name,
+        description: description || '',
+        postedBy: postedBy || 'admin',
+        price: Number(price),
+        hasImage: !!hasImage,
+        imageURL: imageURL || ''
+    };
+
+    store_items.push(newItem);
+    console.log('Item added:', newItem.id, newItem.name);
+
+    return res.status(201).json(newItem);
+});
+
+// Delete item endpoint
+app.delete('/api/items/:id', (req, res) => {
+    const itemId = parseInt(req.params.id);
+    const itemIndex = store_items.findIndex(i => i.id === itemId);
+    
+    if (itemIndex === -1) {
+        return res.status(404).json({ success: false, message: 'Item not found' });
+    }
+    
+    const deletedItem = store_items.splice(itemIndex, 1);
+    console.log('Item deleted:', itemId, deletedItem[0].name);
+    // Return 204 No Content to indicate successful deletion
+    return res.status(204).end();
+});
+
+// Register user endpoint
 app.post('/api/register', (req, res) => {
     const { name, email, password } = req.body;
     
     const users = readUsers();
     
+    // Basic input validation
+    if (!name || !email || !password) {
+        return res.status(400).json({ success: false, message: 'Missing name, email or password' });
+    }
+
     // Check if user already exists
     const existingUser = users.find(u => u.email === email);
     if (existingUser) {
-        return res.status(400).json({ success: false, message: 'User already exists' });
+        // Conflict
+        return res.status(409).json({ success: false, message: 'User already exists' });
     }
     
     // Create new user
@@ -152,7 +200,7 @@ app.post('/api/register', (req, res) => {
         id: users.length + 1,
         name,
         email,
-        password // In production, ALWAYS hash passwords!
+        password 
     };
     
     users.push(newUser);
@@ -160,10 +208,10 @@ app.post('/api/register', (req, res) => {
     
     console.log('New user registered:', { name, email });
     
-    res.json({ success: true, message: 'Registration successful! You can now login.' });
+    return res.status(201).json({ success: true, message: 'Registration successful! You can now login.' });
 });
 
-// Login endpoint
+// User login endpoint
 app.post('/api/login', (req, res) => {
     const { email, password } = req.body;
     
@@ -174,13 +222,13 @@ app.post('/api/login', (req, res) => {
     
     if (user) {
         console.log('User logged in:', email);
-        res.json({ 
+        return res.status(200).json({ 
             success: true, 
             message: 'Login successful!',
             user: { id: user.id, name: user.name, email: user.email }
         });
     } else {
-        res.status(401).json({ success: false, message: 'Invalid email or password' });
+        return res.status(401).json({ success: false, message: 'Invalid email or password' });
     }
 });
 

@@ -25,8 +25,14 @@ function Login() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
       })
-      
-      const result = await response.json()
+
+      const result = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        alert(result.message || 'Login failed')
+        return
+      }
+
       // store logged in user (useful later)
       localStorage.setItem('user', JSON.stringify(result.user))
       // go to home page
