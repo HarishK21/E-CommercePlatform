@@ -45,7 +45,7 @@
     border-radius: 10px;
     transition: 160ms;
   }
-  
+
   .nav__link:hover {
     background: rgba(255,255,255,0.08);
     color: #fff;
@@ -84,7 +84,7 @@
   .nav__searchInput::placeholder {
     color: rgba(255,255,255,0.55);
   }
-  
+
   .nav__right {
     display: flex;
     justify-content: flex-end;
@@ -131,7 +131,7 @@
     font-weight: 700;
     border: 2px solid rgba(15, 15, 18, 0.75);
   }
-  
+
   .nav__user {
     display: flex;
     align-items: center;

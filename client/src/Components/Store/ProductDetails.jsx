@@ -195,7 +195,7 @@ const ProductDetails = () => {
                             <button type="button" className="addToCartBtn" onClick={addToCart} style={{ flex: 1 }}>
                                 Add to Cart
                             </button>
-                            <button type="button" className="addToCartBtn" onClick={() => navigate("/home")} style={{ 
+                            <button type="button" className="addToCartBtn backBtn" onClick={() => navigate("/home")} style={{ 
                                 flex: 1,
                                 background: 'rgba(255,255,255,0.06)',
                                 border: '1px solid rgba(255,255,255,0.14)'

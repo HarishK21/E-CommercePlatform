@@ -153,8 +153,8 @@ export default function Home() {
 
         {/* Add Item */}
         {showAddForm && (
-          <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 60 }}>
-            <div style={{ width: '680px', maxWidth: '95%', background: 'var(--panel)', padding: 20, borderRadius: 10 }}>
+          <div className="addItemModalOverlay">
+            <div className="addItemModalCard">
               <h3 style={{ marginTop: 0 }}>Add New Item</h3>
               <form onSubmit={submitNewItem}>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>

@@ -330,3 +330,40 @@
     box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
     border: 1px solid rgba(255, 255, 255, 0.4);
   }
+
+.backBtn {
+  color: #ffffff;
+}
+
+:root[data-theme="light"] .backBtn {
+  color: #111827;
+}
+
+/* Item modal style */
+.addItemModalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 60;
+}
+
+.addItemModalCard {
+  width: 680px;
+  max-width: 95%;
+  background: rgba(12,12,16,0.94);
+  padding: 20px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.06);
+  box-shadow: 0 12px 40px rgba(2,6,23,0.6);
+  color: var(--home-text);
+}
+
+:root[data-theme="light"] .addItemModalCard {
+  background: #ffffff;
+  border: 1px solid rgba(17,24,39,0.06);
+  box-shadow: 0 12px 40px rgba(2,6,23,0.08);
+  color: #111827;
+}
