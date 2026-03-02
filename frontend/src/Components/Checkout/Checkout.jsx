@@ -37,7 +37,7 @@ export default function Checkout() {
     if (!user) navigate("/login");
   }, []);
 
-    useEffect(() => {
+  useEffect(() => {
     // Get initial cart count from localStorage
     const updateCartCount = () => {
       const cart = localStorage.getItem("cart");
@@ -59,7 +59,7 @@ export default function Checkout() {
 
     // Listen for storage changes 
     window.addEventListener("storage", updateCartCount);
-    
+
     // Event listener for cart updates
     window.addEventListener("cartUpdated", updateCartCount);
 
@@ -86,12 +86,12 @@ export default function Checkout() {
     setTheme((t) => (t === "dark" ? "light" : "dark"));
   };
 
-       {/* Remove Item from Cart */}
+  {/* Remove Item from Cart */ }
   const removeFromCart = (itemId) => {
     const updatedCart = cart.filter((item) => item.id !== itemId);
     setCart(updatedCart);
     localStorage.setItem("cart", JSON.stringify(updatedCart));
-    
+
     // Trigger cart update event for navbar
     window.dispatchEvent(new Event("storage"));
   };
@@ -101,7 +101,7 @@ export default function Checkout() {
       removeFromCart(itemId);
       return;
     }
-    
+
     const updatedCart = cart.map((item) =>
       item.id === itemId ? { ...item, quantity: newQuantity } : item
     );
@@ -204,249 +204,249 @@ export default function Checkout() {
         </div>
 
         {cart.length === 0 && search.trim() !== "" ? (
-            <div className="noResults">
-                No items found
+          <div className="noResults">
+            No items found
+          </div>
+        ) : (
+          <div className="checkout__container">
+            {/* LEFT SIDE - Cart Items */}
+            <div className="checkout__left">
+              <h2 className="checkout__sectionTitle">Order Items</h2>
+              {cart.length === 0 ? (
+                <div className="checkout__emptyCart">Your cart is empty</div>
+              ) : (
+                <div className="checkout__grid">
+                  {cart.map((item) => (
+                    <div key={item.id} className="checkout__card">
+                      {/* Image thumbnail */}
+                      <div className="checkout__card__imageContainer">
+                        {item.hasImage ? (
+                          <img
+                            src={item.imageURL.startsWith('http') ? item.imageURL : `${window.location.origin}${item.imageURL}`}
+                            alt={item.name}
+                            onError={(e) => { e.target.style.display = 'none'; }}
+                          />
+                        ) : (
+                          <div style={{ color: 'var(--checkout-subtext)', fontSize: '0.75rem' }}>No Image</div>
+                        )}
+                      </div>
+
+                      {/* Details */}
+                      <div className="checkout__card__details">
+                        <h3 className="checkout__card__name">{item.name}</h3>
+
+                        <div className="checkout__card__meta">
+                          <div className="checkout__card__price">${item.price}</div>
+                        </div>
+
+                        <div className="checkout__card__quantity">
+                          Qty: {item.quantity || 1}
+                        </div>
+
+                        {/* Controls */}
+                        <div className="checkout__card__controls">
+                          <button
+                            className="checkout__card__btn"
+                            onClick={() => updateQuantity(item.id, (item.quantity || 1) - 1)}
+                            title="Decrease quantity"
+                          >
+                            −
+                          </button>
+                          <button
+                            className="checkout__card__btn"
+                            onClick={() => updateQuantity(item.id, (item.quantity || 1) + 1)}
+                            title="Increase quantity"
+                          >
+                            +
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Actions */}
+                      <div className="checkout__card__actions">
+                        <Link className="checkout__card__link" to={`/product/${item.id}`}>
+                          View
+                        </Link>
+
+                        <button
+                          className="checkout__card__delete"
+                          onClick={() => removeFromCart(item.id)}
+                          title="Delete from cart"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
-            ) : (
-              <div className="checkout__container">
-                {/* LEFT SIDE - Cart Items */}
-                <div className="checkout__left">
-                  <h2 className="checkout__sectionTitle">Order Items</h2>
-                  {cart.length === 0 ? (
-                    <div className="checkout__emptyCart">Your cart is empty</div>
-                  ) : (
-                    <div className="checkout__grid">
-                      {cart.map((item) => (
-                        <div key={item.id} className="checkout__card">
-                          {/* Image thumbnail */}
-                          <div className="checkout__card__imageContainer">
-                              {item.hasImage ? (
-                                  <img 
-                                      src={item.imageURL.startsWith('http') ? item.imageURL : `${window.location.origin}${item.imageURL}`}
-                                      alt={item.name}
-                                      onError={(e) => { e.target.style.display = 'none'; }} 
-                                  />
-                              ) : (
-                                  <div style={{ color: 'var(--checkout-subtext)', fontSize: '0.75rem' }}>No Image</div>
-                              )}
-                          </div>
 
-                          {/* Details */}
-                          <div className="checkout__card__details">
-                            <h3 className="checkout__card__name">{item.name}</h3>
-
-                            <div className="checkout__card__meta">
-                                <div className="checkout__card__price">${item.price}</div>
-                            </div>
-
-                            <div className="checkout__card__quantity">
-                                Qty: {item.quantity || 1}
-                            </div>
-
-                            {/* Controls */}
-                            <div className="checkout__card__controls">
-                              <button 
-                                className="checkout__card__btn"
-                                onClick={() => updateQuantity(item.id, (item.quantity || 1) - 1)}
-                                title="Decrease quantity"
-                              >
-                                −
-                              </button>
-                              <button 
-                                className="checkout__card__btn"
-                                onClick={() => updateQuantity(item.id, (item.quantity || 1) + 1)}
-                                title="Increase quantity"
-                              >
-                                +
-                              </button>
-                            </div>
-                          </div>
-
-                          {/* Actions */}
-                          <div className="checkout__card__actions">
-                            <Link className="checkout__card__link" to={`/product/${item.id}`}>
-                                View
-                            </Link>
-
-                            <button 
-                              className="checkout__card__delete"
-                              onClick={() => removeFromCart(item.id)}
-                              title="Delete from cart"
-                            >
-                              Delete
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+            {/* Checkout Form */}
+            <div className="checkout__right">
+              <h2 className="checkout__sectionTitle">Checkout</h2>
+              {orderConfirmed ? (
+                <div className="checkout__confirmation">
+                  <div className="checkout__confirmIcon">✓</div>
+                  <h3>Order Confirmed!</h3>
+                  <p>Thank you, {formData.firstName}! Your order has been placed successfully.</p>
+                  <p className="checkout__confirmDetails">
+                    A confirmation email will be sent to {formData.email}
+                  </p>
+                  <div className="checkout__paymentSummary">
+                    <h4>Payment</h4>
+                    <p>
+                      {formData.cardName && <>{formData.cardName} — </>}
+                      Card ending in {formData.cardNumber ? formData.cardNumber.replace(/\s+/g, '').slice(-4) : '----'}
+                    </p>
+                  </div>
+                  <button
+                    className="checkout__emptyBtn"
+                    onClick={emptyCart}
+                  >
+                    Continue Shopping
+                  </button>
                 </div>
+              ) : (
+                <form className="checkout__form" onSubmit={handleSubmitOrder}>
+                  <div className="checkout__formGroup">
+                    <label>First Name</label>
+                    <input
+                      type="text"
+                      name="firstName"
+                      value={formData.firstName}
+                      onChange={handleFormChange}
+                      required
+                      placeholder="First Name"
+                    />
+                  </div>
 
-                {/* Checkout Form */}
-                <div className="checkout__right">
-                  <h2 className="checkout__sectionTitle">Checkout</h2>
-                  {orderConfirmed ? (
-                    <div className="checkout__confirmation">
-                      <div className="checkout__confirmIcon">✓</div>
-                      <h3>Order Confirmed!</h3>
-                      <p>Thank you, {formData.firstName}! Your order has been placed successfully.</p>
-                      <p className="checkout__confirmDetails">
-                        A confirmation email will be sent to {formData.email}
-                      </p>
-                      <div className="checkout__paymentSummary">
-                        <h4>Payment</h4>
-                        <p>
-                          {formData.cardName && <>{formData.cardName} — </>}
-                          Card ending in {formData.cardNumber ? formData.cardNumber.replace(/\s+/g, '').slice(-4) : '----'}
-                        </p>
-                      </div>
-                      <button 
-                        className="checkout__emptyBtn"
-                        onClick={emptyCart}
-                      >
-                        Continue Shopping
-                      </button>
+                  <div className="checkout__formGroup">
+                    <label>Last Name</label>
+                    <input
+                      type="text"
+                      name="lastName"
+                      value={formData.lastName}
+                      onChange={handleFormChange}
+                      required
+                      placeholder="Last Name"
+                    />
+                  </div>
+
+                  <div className="checkout__formGroup">
+                    <label>Email</label>
+                    <input
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleFormChange}
+                      required
+                      placeholder="name@example.com"
+                    />
+                  </div>
+
+                  <div className="checkout__formGroup">
+                    <label>Address</label>
+                    <input
+                      type="text"
+                      name="address"
+                      value={formData.address}
+                      onChange={handleFormChange}
+                      required
+                      placeholder="123 Main St"
+                    />
+                  </div>
+
+                  <div className="checkout__formGroup">
+                    <label>City</label>
+                    <input
+                      type="text"
+                      name="city"
+                      value={formData.city}
+                      onChange={handleFormChange}
+                      required
+                      placeholder="Toronto"
+                    />
+                  </div>
+
+                  <div className="checkout__formGroup">
+                    <label>Postal Code</label>
+                    <input
+                      type="text"
+                      name="postalCode"
+                      value={formData.postalCode}
+                      onChange={handleFormChange}
+                      required
+                      placeholder="M4N 1K1"
+                    />
+                  </div>
+
+                  {/* Payment Information */}
+                  <div className="checkout__sectionTitle" style={{ marginTop: '12px' }}>Payment Information</div>
+
+                  <div className="checkout__formGroup">
+                    <label>Cardholder Name</label>
+                    <input
+                      type="text"
+                      name="cardName"
+                      value={formData.cardName}
+                      onChange={handleFormChange}
+                      required
+                      placeholder="Name on card"
+                    />
+                  </div>
+
+                  <div className="checkout__formGroup">
+                    <label>Card Number</label>
+                    <input
+                      type="text"
+                      name="cardNumber"
+                      inputMode="numeric"
+                      value={formData.cardNumber}
+                      onChange={handleFormChange}
+                      required
+                      placeholder="1234 5678 9012 3456"
+                    />
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <div className="checkout__formGroup" style={{ flex: 1 }}>
+                      <label>Expiry (MM/YY)</label>
+                      <input
+                        type="text"
+                        name="cardExpiry"
+                        value={formData.cardExpiry}
+                        onChange={handleFormChange}
+                        required
+                        placeholder="MM/YY"
+                      />
                     </div>
-                  ) : (
-                    <form className="checkout__form" onSubmit={handleSubmitOrder}>
-                      <div className="checkout__formGroup">
-                        <label>First Name</label>
-                        <input
-                          type="text"
-                          name="firstName"
-                          value={formData.firstName}
-                          onChange={handleFormChange}
-                          required
-                          placeholder="First Name"
-                        />
-                      </div>
 
-                      <div className="checkout__formGroup">
-                        <label>Last Name</label>
-                        <input
-                          type="text"
-                          name="lastName"
-                          value={formData.lastName}
-                          onChange={handleFormChange}
-                          required
-                          placeholder="Last Name"
-                        />
-                      </div>
+                    <div className="checkout__formGroup" style={{ width: '120px' }}>
+                      <label>CVV</label>
+                      <input
+                        type="password"
+                        name="cardCVV"
+                        value={formData.cardCVV}
+                        onChange={handleFormChange}
+                        required
+                        placeholder="123"
+                      />
+                    </div>
+                  </div>
 
-                      <div className="checkout__formGroup">
-                        <label>Email</label>
-                        <input
-                          type="email"
-                          name="email"
-                          value={formData.email}
-                          onChange={handleFormChange}
-                          required
-                          placeholder="name@example.com"
-                        />
-                      </div>
-
-                      <div className="checkout__formGroup">
-                        <label>Address</label>
-                        <input
-                          type="text"
-                          name="address"
-                          value={formData.address}
-                          onChange={handleFormChange}
-                          required
-                          placeholder="123 Main St"
-                        />
-                      </div>
-
-                      <div className="checkout__formGroup">
-                        <label>City</label>
-                        <input
-                          type="text"
-                          name="city"
-                          value={formData.city}
-                          onChange={handleFormChange}
-                          required
-                          placeholder="Toronto"
-                        />
-                      </div>
-
-                      <div className="checkout__formGroup">
-                        <label>Postal Code</label>
-                        <input
-                          type="text"
-                          name="postalCode"
-                          value={formData.postalCode}
-                          onChange={handleFormChange}
-                          required
-                          placeholder="M4N 1K1"
-                        />
-                      </div>
-
-                      {/* Payment Information */}
-                      <div className="checkout__sectionTitle" style={{ marginTop: '12px' }}>Payment Information</div>
-
-                      <div className="checkout__formGroup">
-                        <label>Cardholder Name</label>
-                        <input
-                          type="text"
-                          name="cardName"
-                          value={formData.cardName}
-                          onChange={handleFormChange}
-                          required
-                          placeholder="Name on card"
-                        />
-                      </div>
-
-                      <div className="checkout__formGroup">
-                        <label>Card Number</label>
-                        <input
-                          type="text"
-                          name="cardNumber"
-                          inputMode="numeric"
-                          value={formData.cardNumber}
-                          onChange={handleFormChange}
-                          required
-                          placeholder="1234 5678 9012 3456"
-                        />
-                      </div>
-
-                      <div style={{ display: 'flex', gap: '8px' }}>
-                        <div className="checkout__formGroup" style={{ flex: 1 }}>
-                          <label>Expiry (MM/YY)</label>
-                          <input
-                            type="text"
-                            name="cardExpiry"
-                            value={formData.cardExpiry}
-                            onChange={handleFormChange}
-                            required
-                            placeholder="MM/YY"
-                          />
-                        </div>
-
-                        <div className="checkout__formGroup" style={{ width: '120px' }}>
-                          <label>CVV</label>
-                          <input
-                            type="password"
-                            name="cardCVV"
-                            value={formData.cardCVV}
-                            onChange={handleFormChange}
-                            required
-                            placeholder="123"
-                          />
-                        </div>
-                      </div>
-
-                      <button 
-                        type="submit" 
-                        className="checkout__submitBtn"
-                        disabled={cart.length === 0}
-                      >
-                        Place Order
-                      </button>
-                    </form>
-                  )}
-                </div>
-              </div>
-            )}
+                  <button
+                    type="submit"
+                    className="checkout__submitBtn arcade-btn"
+                    disabled={cart.length === 0}
+                  >
+                    Place Order
+                  </button>
+                </form>
+              )}
+            </div>
+          </div>
+        )}
       </main>
 
       {/*footer for bottom area*/}

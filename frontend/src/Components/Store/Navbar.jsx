@@ -28,7 +28,7 @@ export default function Navbar({ user, onLogout, onSearchChange, searchValue }) 
 
     // Listen for storage changes 
     window.addEventListener("storage", updateCartCount);
-    
+
     // Event listener for same-tab cart updates
     window.addEventListener("cartUpdated", updateCartCount);
 
@@ -43,6 +43,12 @@ export default function Navbar({ user, onLogout, onSearchChange, searchValue }) 
       <div className="nav__inner">
         <div className="nav__left">
           <button className="nav__brand" onClick={() => navigate("/home")}>
+            <div className="coin-container">
+              <div className="coin">
+                <div className="coin-front">$</div>
+                <div className="coin-back">$</div>
+              </div>
+            </div>
             SHOPLY
           </button>
 

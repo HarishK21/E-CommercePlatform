@@ -95,7 +95,7 @@ function Register() {
             />
           </div>
 
-          <button type="submit" className="auth-button">Create Account</button>
+          <button type="submit" className="auth-button arcade-btn">Create Account</button>
         </form>
 
         <p className="auth-footer">

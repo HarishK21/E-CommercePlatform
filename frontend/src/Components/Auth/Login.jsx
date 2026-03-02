@@ -74,7 +74,7 @@ function Login() {
             />
           </div>
 
-          <button type="submit" className="auth-button">Login</button>
+          <button type="submit" className="auth-button arcade-btn">Login</button>
         </form>
 
         <p className="auth-footer">
