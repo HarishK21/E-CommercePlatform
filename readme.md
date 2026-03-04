@@ -52,9 +52,10 @@ In the future, additional functionality could be added, for example, filtering i
 9. Access the web application by clicking on the localhost url provided by the terminal.
 10. Create an account and use the account to sign in.
 
-## 🗃️ JSON Structure
-- **Users:** Stores user information (`id`, `name`, `email`, `password`).
-- **Store_Items:** Stores the store products (`id`, `report_id`, `user_id`, `email`, `created_at`)
+## 🗃️ Database Structure
+- **Users:** Stores user information (`id`, `name`, `email`, `password`, `role`).
+- **Items:** Stores the store products (`id`, `name`, `description`, `postedBy`, `userId`, `price`, `hasImage`, `imageURL`)
+- **Orders:** Stores the user placed orders (`id`, `firstName`, `lastName`, `userId`, `email`, `address`, `city`, `postalCode`, `cardName`, `cardNumber`, `expiryDate`, `cvv`, `totalPrice`, `items`)
 
 ## 💭 Reflection
 
