@@ -52,6 +52,19 @@ In the future, additional functionality could be added, for example, filtering i
 9. Access the web application by clicking on the localhost url provided by the terminal.
 10. Create an account and use the account to sign in.
 
+## 👤 Seeded Users
+When the backend starts with an empty database, the following users are created automatically. You can sign in with any of these accounts:
+
+| Name      | Email                     | Password     | Role  |
+|-----------|---------------------------|--------------|-------|
+| admin521  | admin521@gmail.com        | 521admin521  | admin |
+| Gill123   | gill123@gmail.com         | S1234        | user  |
+| test123   | test123@gmail.com         | test123      | user  |
+| Admin     | admin@gmail.com           | admin123     | admin |
+| Test      | unique_verify_2026@demo.com | password   | user  |
+
+Use an **admin** account to access admin features (e.g. deleting items). Seeding only runs when there are no users in the database.
+
 ## 🗃️ Database Structure
 - **Users:** Stores user information (`id`, `name`, `email`, `password`, `role`).
 - **Items:** Stores the store products (`id`, `name`, `description`, `postedBy`, `userId`, `price`, `hasImage`, `imageURL`)
