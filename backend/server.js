@@ -1,401 +1,53 @@
+require('dotenv').config();
+
 const express = require('express');
 const app = express();
-const path = require('path');
-const cors = require('cors');
-const mongoose = require('mongoose');
 
-const Item = require('./models/Item');
-const User = require('./models/User');
-const Order = require('./models/Order');
+const connectDB = require('./config/database');
+const seedDatabase = require('./config/seed');
+const setupMiddleware = require('./middleware');
 
-const PORT = 8080;
+const itemRoutes = require('./routes/items');
+const userRoutes = require('./routes/users');
+const orderRoutes = require('./routes/orders');
 
-// Middleware
-app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname, 'public')));
+const PORT = process.env.PORT || 8080;
 
-// MongoDB Connection
-mongoose.connect('mongodb://localhost:27017/Shoply')
-    .then(() => {
-        console.log('Connected to MongoDB (Shoply database)');
-        seedDatabase();
-    })
-    .catch((err) => console.error('MongoDB connection error:', err));
-
-
-// Initial data to seed if DB is empty
-const initialItems = [
-    {
-        name: "Apple iPhone 14 Pro Max",
-        description: "The iPhone 14 Pro Max features a stunning 6.7-inch Super Retina XDR display, powered by the A16 Bionic chip for lightning-fast performance. With its advanced camera system, including a 48MP main sensor and improved low-light capabilities, it captures breathtaking photos and videos. The device also offers enhanced battery life, 5G connectivity, and a sleek design that combines durability with elegance.",
-        postedBy: "James Smith",
-        userId: 14,
-        price: 1099.99,
-        hasImage: true,
-        imageURL: "/images/products/1.jpg"
-    },
-    {
-        name: "Samsung Galaxy S23 Ultra",
-        description: "The Samsung Galaxy S23 Ultra boasts a 6.8-inch Dynamic AMOLED display with a 120Hz refresh rate, delivering vibrant visuals and smooth scrolling. Powered by the Exynos 2200 or Snapdragon 8 Gen 1 processor, it offers exceptional performance for gaming and multitasking. The phone features a versatile quad-camera setup, including a 108MP main sensor, and supports 5G connectivity for fast data speeds. With its sleek design and long-lasting battery, the Galaxy S23 Ultra is a top-tier flagship device.",
-        postedBy: "Emily Johnson",
-        userId: 18,
-        price: 1199.99,
-        hasImage: true,
-        imageURL: "/images/products/2.jpg"
-    },
-    {
-        name: "Stussy x Nike Air Force 1 Low",
-        description: "The Stussy x Nike Air Force 1 Low is a highly sought-after collaboration between the iconic streetwear brand Stussy and Nike. This limited-edition sneaker features a classic Air Force 1 silhouette with premium materials and unique design elements. The shoe boasts a clean white leather upper with subtle Stussy branding, including the signature S logo on the heel and tongue. With its timeless style and exclusive collaboration, the Stussy x Nike Air Force 1 Low is a must-have for sneaker enthusiasts and collectors.",
-        postedBy: "Harish Sagar",
-        userId: 1,
-        price: 150.00,
-        hasImage: true,
-        imageURL: "/images/products/3.webp"
-    },
-    {
-        name: "Sony WH-1000XM4 Wireless Noise-Canceling Headphones",
-        description: "The Sony WH-1000XM4 headphones offer industry-leading noise cancellation, providing an immersive listening experience. With up to 30 hours of battery life and quick charging capabilities, you can enjoy your music all day long. The headphones feature a comfortable design with plush ear cups and adaptive sound control that adjusts to your environment. Additionally, they support high-resolution audio and have a built-in microphone for clear calls. Whether you're commuting, working, or relaxing, the Sony WH-1000XM4 is the perfect companion for your audio needs.",
-        postedBy: "Michael Brown",
-        userId: 13,
-        price: 349.99,
-        hasImage: true,
-        imageURL: "/images/products/4.jpg"
-    },
-    {
-        name: "Nvidia GeForce RTX 5090 Graphics Card",
-        description: "The Nvidia GeForce RTX 5090 is a high-performance graphics card designed for gamers and content creators. It features the latest Ampere architecture, delivering exceptional performance and ray tracing capabilities. With its massive 24GB of GDDR6X memory, the RTX 5090 can handle even the most demanding games and applications with ease. The card also supports DLSS (Deep Learning Super Sampling) technology, which enhances performance while maintaining visual quality. Whether you're gaming at 4K resolution or working on intensive creative projects, the Nvidia GeForce RTX 5090 is a powerhouse that delivers stunning visuals and smooth performance.",
-        postedBy: "Jensen Huang",
-        userId: 17,
-        price: 3499.99,
-        hasImage: true,
-        imageURL: "/images/products/5.jpg"
-    },
-    {
-        name: "Apple MacBook Pro 16-inch (2023)",
-        description: "The Apple MacBook Pro 16-inch (2023) is a powerhouse laptop designed for professionals and creatives. It features a stunning Retina display with True Tone technology, providing vibrant colors and sharp details. Powered by the M2 Pro or M2 Max chip, it delivers exceptional performance for demanding tasks such as video editing, 3D rendering, and software development. The MacBook Pro also offers an improved keyboard, enhanced thermal management, and a long-lasting battery, making it an ideal choice for those who need a reliable and high-performance machine for their work.",
-        postedBy: "Bob Williams",
-        userId: 9,
-        price: 2499.99,
-        hasImage: true,
-        imageURL: "/images/products/6.jpg"
-    },
-    {
-        name: "Sony PlayStation 5",
-        description: "The Sony PlayStation 5 is the latest generation of gaming console, offering a powerful gaming experience with its custom AMD Zen 2 processor and RDNA 2 graphics architecture. The PS5 features a sleek design and comes with a new DualSense controller that provides haptic feedback and adaptive triggers for immersive gameplay. With its ultra-fast SSD, the console allows for quick loading times and seamless transitions between games. The PS5 also supports ray tracing, 4K gaming, and backward compatibility with a wide range of PS4 games, making it a must-have for gamers looking to experience the next level of gaming performance.",
-        postedBy: "Shawn Layden",
-        userId: 8,
-        price: 499.99,
-        hasImage: true,
-        imageURL: "/images/products/7.webp"
-    },
-    {
-        name: "Apple AirPods Pro (2nd Generation)",
-        description: "The Apple AirPods Pro (2nd Generation) offer an enhanced audio experience with active noise cancellation and a customizable fit. These wireless earbuds feature a new H1 chip that provides improved performance and connectivity. The AirPods Pro also include a transparency mode that allows you to hear your surroundings while still enjoying your music. With up to 4.5 hours of listening time on a single charge and a wireless charging case that provides additional battery life, the AirPods Pro are perfect for on-the-go use and offer seamless integration with Apple devices.",
-        postedBy: "Lisa Anderson",
-        userId: 7,
-        price: 249.99,
-        hasImage: true,
-        imageURL: "/images/products/8.jpg"
-    },
-    {
-        name: "Modern Style Dining Table Set",
-        description: "This modern style dining table set features a sleek and minimalist design, perfect for contemporary dining spaces. The set includes a sturdy rectangular table with a smooth surface and four matching chairs with comfortable cushioned seats. The table is made from high-quality materials, ensuring durability and stability, while the chairs provide ergonomic support for long meals and gatherings. With its clean lines and neutral color palette, this dining table set will complement a variety of interior styles and create a stylish and inviting atmosphere in your dining area.",
-        postedBy: "Sarah Davis",
-        userId: 16,
-        price: 799.99,
-        hasImage: true,
-        imageURL: "/images/products/9.avif"
-    }
-];
-
-// Seed Database Function
-const seedDatabase = async () => {
-    try {
-        const count = await Item.countDocuments();
-        if (count === 0) {
-            console.log('Database empty. Seeding initial items...');
-            // Loop sequentially to ensure auto-increment ID hook works correctly in order
-            for (let i = 0; i < initialItems.length; i++) {
-                const newItem = new Item(initialItems[i]);
-                await newItem.save();
-            }
-            console.log('Database seeded successfully!');
-        } else {
-            console.log(`Database already populated with ${count} items. Skipping seed.`);
-        }
-    } catch (error) {
-        console.error('Error seeding database:', error);
-    }
-};
+// Setup middleware
+setupMiddleware(app);
 
 // Health check
 app.get('/', (req, res) => {
     res.json({ status: 'ok', message: 'Shoply API is running' });
 });
 
-
 // API Routes
-
-// Get all store items
-app.get('/api/items', async (req, res) => {
-    try {
-        const { minPrice, maxPrice, sort } = req.query;
-
-        let filter = {};
-
-        if (minPrice || maxPrice) {
-            filter.price = {};
-
-            if (minPrice) {
-                filter.price.$gte = Number(minPrice);
-            }
-
-            if (maxPrice) {
-                filter.price.$lte = Number(maxPrice);
-            }
-        }
-
-        let sortOption = { id: 1 }; 
-
-        if (sort === 'price_asc') {
-            sortOption = { price: 1 };
-        } else if (sort === 'price_desc') {
-            sortOption = { price: -1 };
-        } else if (sort === 'newest') {
-            sortOption = { createdAt: -1 };
-        }
-
-        const items = await Item.find(filter)
-            .sort(sortOption)
-            .lean();
-
-        return res.status(200).json(items);
-
-    } catch (error) {
-        console.error('Error fetching items:', error);
-        return res.status(500).json({ success: false, message: 'Server error' });
-    }
-});
-
-// Get single item
-app.get('/api/items/:id', async (req, res) => {
-    try {
-        const item = await Item.findOne({ id: parseInt(req.params.id) }).lean();
-        if (item) {
-            return res.status(200).json(item);
-        }
-        return res.status(404).json({ success: false, message: 'Item not found' });
-    } catch (error) {
-        console.error('Error fetching item:', error);
-        return res.status(500).json({ success: false, message: 'Server error' });
-    }
-});
-
-// Create new store item
-app.post('/api/items', async (req, res) => {
-    try {
-        const { name, description, postedBy, userId, price, hasImage, imageURL } = req.body;
-
-        if (!name || typeof price === 'undefined') {
-            return res.status(400).json({ success: false, message: 'Missing required fields: name, price' });
-        }
-
-        const newItem = new Item({
-            name,
-            description: description || '',
-            postedBy: postedBy || 'admin',
-            userId: userId || null,
-            price: Number(price),
-            hasImage: !!hasImage,
-            imageURL: imageURL || ''
-        });
-
-        await newItem.save();
-        console.log('Item added:', newItem.id, newItem.name);
-
-        // Return lean object
-        const savedItem = await Item.findOne({ id: newItem.id }).lean();
-        return res.status(201).json(savedItem);
-
-    } catch (error) {
-        console.error('Error adding item:', error);
-        return res.status(500).json({ success: false, message: 'Server error' });
-    }
-});
-
-// Update item endpoint
-app.put('/api/items/:id', async (req, res) => {
-    try {
-        const itemId = parseInt(req.params.id);
-        const { name, description, postedBy, userId, price, hasImage, imageURL } = req.body;
-
-        const item = await Item.findOne({ id: itemId });
-
-        if (!item) {
-            return res.status(404).json({ success: false, message: 'Item not found' });
-        }
-
-        // Update only provided fields
-        if (name !== undefined) item.name = name;
-        if (description !== undefined) item.description = description;
-        if (postedBy !== undefined) item.postedBy = postedBy;
-        if (userId !== undefined) item.userId = userId;
-        if (price !== undefined) item.price = Number(price);
-        if (hasImage !== undefined) item.hasImage = !!hasImage;
-        if (imageURL !== undefined) item.imageURL = imageURL;
-
-        await item.save();
-        console.log('Item updated:', itemId, item.name);
-
-        const updatedItem = await Item.findOne({ id: itemId }).lean();
-        return res.status(200).json(updatedItem);
-
-    } catch (error) {
-        console.error('Error updating item:', error);
-        return res.status(500).json({ success: false, message: 'Server error' });
-    }
-});
-
-// Delete item endpoint
-app.delete('/api/items/:id', async (req, res) => {
-    try {
-        const itemId = parseInt(req.params.id);
-
-        const result = await Item.findOneAndDelete({ id: itemId });
-
-        if (!result) {
-            return res.status(404).json({ success: false, message: 'Item not found' });
-        }
-
-        console.log('Item deleted:', itemId, result.name);
-        return res.status(204).end();
-
-    } catch (error) {
-        console.error('Error deleting item:', error);
-        return res.status(500).json({ success: false, message: 'Server error' });
-    }
-});
-
-
-// Register user endpoint
-app.post('/api/register', async (req, res) => {
-    try {
-        const { name, email, password } = req.body;
-
-        if (!name || !email || !password) {
-            return res.status(400).json({ success: false, message: 'Missing name, email or password' });
-        }
-
-        const existingUser = await User.findOne({ email });
-        if (existingUser) {
-            return res.status(409).json({ success: false, message: 'User already exists' });
-        }
-
-        const newUser = new User({
-            name,
-            email,
-            password
-        });
-
-        await newUser.save();
-
-        console.log('New user registered:', { name, email });
-        return res.status(201).json({ success: true, message: 'Registration successful! You can now login.' });
-
-    } catch (error) {
-        console.error('Registration error:', error);
-        return res.status(500).json({ success: false, message: 'Server error' });
-    }
-});
-
-// User login endpoint
-app.post('/api/login', async (req, res) => {
-    try {
-        const { email, password } = req.body;
-
-        const user = await User.findOne({ email, password });
-
-        if (user) {
-            console.log('User logged in:', email);
-            return res.status(200).json({
-                success: true,
-                message: 'Login successful!',
-                user: { id: user.id, name: user.name, email: user.email, role: user.role }
-            });
-        } else {
-            return res.status(401).json({ success: false, message: 'Invalid email or password' });
-        }
-    } catch (error) {
-        console.error('Login error:', error);
-        return res.status(500).json({ success: false, message: 'Server error' });
-    }
-});
-
-// Create new order
-app.post('/api/order', async (req, res) => {
-    try {
-        const { firstName, lastName, userId, email, address, city, postalCode, cardName, cardNumber, cardExpiry, cardCVV, totalPrice, items } = req.body;
-
-        if (!firstName || !lastName || !userId || !email || !address || !city || !postalCode || !cardName || !cardNumber || !cardExpiry || !cardCVV || !totalPrice || !items) {
-            return res.status(400).json({ success: false, message: 'Missing required fields' });
-        }
-
-        const newOrder = new Order({
-            firstName,
-            lastName,
-            userId,
-            email,
-            address,
-            city,
-            postalCode,
-            cardName,
-            cardNumber,
-            expiryDate: cardExpiry,
-            cvv: cardCVV,
-            totalPrice,
-            items
-        }); 
-
-        await newOrder.save();
-        console.log('Order created:', newOrder.id);
-
-        const savedOrder = await Order.findOne({ id: newOrder.id }).lean();
-        return res.status(201).json(savedOrder);
-
-    } catch (error) {
-        console.error('Error creating order:', error);
-        return res.status(500).json({ success: false, message: 'Server error' });
-    }
-});
-
-// Get all orders for a specific user
-app.get('/api/orders/:userID', async (req, res) => {
-    try {
-        const userId = parseInt(req.params.userID);
-
-        if (isNaN(userId)) {
-            return res.status(400).json({ success: false, message: 'Invalid user ID' });
-        }
-
-        const orders = await Order.find({ userId: userId })
-            .sort({ id: -1 })
-            .lean();
-
-        return res.status(200).json(orders);
-
-    } catch (error) {
-        console.error('Error fetching orders:', error);
-        return res.status(500).json({ success: false, message: 'Server error' });
-    }
-});
+app.use('/api/items', itemRoutes);
+app.use('/api', userRoutes);
+app.use('/api', orderRoutes);
 
 // 404 Fallback for unknown API routes
 app.use('/api', (req, res) => {
     res.status(404).json({ success: false, message: 'API endpoint not found' });
 });
 
-app.listen(PORT, () => {
-    console.log("Server has started on port " + PORT);
-});
+// Start server after database connection
+const startServer = async () => {
+    try {
+        const connected = await connectDB();
+        if (connected) {
+            await seedDatabase();
+        } else {
+            console.warn('Warning: MongoDB connection failed. Server will start but database operations may fail.');
+        }
+        
+        app.listen(PORT, () => {
+            console.log("Server has started on port " + PORT);
+        });
+    } catch (error) {
+        console.error('Failed to start server:', error);
+        process.exit(1);
+    }
+};
+
+startServer();
