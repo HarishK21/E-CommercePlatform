@@ -10,6 +10,7 @@ export default function Checkout() {
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
+    userId: null,
     email: "",
     address: "",
     city: "",
@@ -20,6 +21,7 @@ export default function Checkout() {
     cardCVV: ""
   });
   const [orderConfirmed, setOrderConfirmed] = useState(false);
+  const [confirmedOrderDetails, setConfirmedOrderDetails] = useState(null);
 
   const [cart, setCart] = useState(() => {
     const savedCart = localStorage.getItem("cart");
@@ -115,7 +117,7 @@ export default function Checkout() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmitOrder = (e) => {
+  const handleSubmitOrder = async (e) => {
     e.preventDefault();
     if (cart.length === 0) {
       alert("Cart is empty!");
@@ -145,21 +147,69 @@ export default function Checkout() {
       return;
     }
 
-    setOrderConfirmed(true);
+    try {
+      // Calculate total price
+      const totalPrice = cart.reduce((total, item) => {
+        return total + (item.price * (item.quantity || 1));
+      }, 0);
+
+      // Prepare order data
+      const orderData = {
+        ...formData,
+        userId: user.id,
+        totalPrice,
+        items: cart
+      };
+
+      // Send order to backend
+      const response = await fetch('/api/order', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(orderData)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: 'Failed to create order' }));
+        throw new Error(errorData.message || 'Failed to create order');
+      }
+
+      const savedOrder = await response.json();
+      console.log('Order saved successfully:', savedOrder);
+
+      // Store order details for confirmation display
+      setConfirmedOrderDetails({
+        firstName: formData.firstName,
+        email: formData.email,
+        cardName: formData.cardName,
+        cardNumber: formData.cardNumber
+      });
+
+      // Clear cart and show confirmation
+      emptyCart(false);
+      setOrderConfirmed(true);
+
+    } catch (error) {
+      console.error('Error creating order:', error);
+      alert('Failed to place order: ' + error.message);
+    }
   };
 
-  const emptyCart = () => {
+  const emptyCart = (resetConfirmation = true) => {
     setCart([]);
     localStorage.setItem("cart", JSON.stringify([]));
-    setOrderConfirmed(false);
+    if (resetConfirmation) {
+      setOrderConfirmed(false);
+      setConfirmedOrderDetails(null);
+    }
     setFormData({
       firstName: "",
       lastName: "",
       email: "",
       address: "",
       city: "",
-      postalCode: ""
-      ,
+      postalCode: "",
       cardName: "",
       cardNumber: "",
       cardExpiry: "",
@@ -289,15 +339,15 @@ export default function Checkout() {
                 <div className="checkout__confirmation">
                   <div className="checkout__confirmIcon">✓</div>
                   <h3>Order Confirmed!</h3>
-                  <p>Thank you, {formData.firstName}! Your order has been placed successfully.</p>
+                  <p>Thank you, {confirmedOrderDetails?.firstName || 'Customer'}! Your order has been placed successfully.</p>
                   <p className="checkout__confirmDetails">
-                    A confirmation email will be sent to {formData.email}
+                    A confirmation email will be sent to {confirmedOrderDetails?.email || 'your email'}
                   </p>
                   <div className="checkout__paymentSummary">
                     <h4>Payment</h4>
                     <p>
-                      {formData.cardName && <>{formData.cardName} — </>}
-                      Card ending in {formData.cardNumber ? formData.cardNumber.replace(/\s+/g, '').slice(-4) : '----'}
+                      {confirmedOrderDetails?.cardName && <>{confirmedOrderDetails.cardName} — </>}
+                      Card ending in {confirmedOrderDetails?.cardNumber ? confirmedOrderDetails.cardNumber.replace(/\s+/g, '').slice(-4) : '----'}
                     </p>
                   </div>
                   <button

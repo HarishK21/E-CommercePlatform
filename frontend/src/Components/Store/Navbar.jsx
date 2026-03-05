@@ -54,7 +54,7 @@ export default function Navbar({ user, onLogout, onSearchChange, searchValue }) 
 
           <nav className="nav__links">
             <Link to="/home" className="nav__link">Home</Link>
-            {/* <Link to="/checkout" className="nav__link">Checkout</Link> */}
+            <Link to="/orders" className="nav__link">My Orders</Link>
           </nav>
         </div>
 

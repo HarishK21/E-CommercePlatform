@@ -16,6 +16,8 @@
   --accent-gradient: linear-gradient(135deg, #818cf8 0%, #6366f1 50%, #4f46e5 100%);
   --border: rgba(255, 255, 255, 0.10);
   --footer-bg: rgba(255, 255, 255, 0.03);
+  --input-bg: rgba(255, 255, 255, 0.08);
+  --input-border: rgba(255, 255, 255, 0.30);
 }
 
 :root[data-theme="light"] {
@@ -34,6 +36,8 @@
   --accent-hover: #4f46e5;
   --border: rgba(17, 24, 39, 0.10);
   --footer-bg: rgba(255, 255, 255, 0.80);
+  --input-bg: rgba(255, 255, 255, 0.95);
+  --input-border: rgba(17, 24, 39, 0.30);
 }
 
 /* ========== Page Layout ========== */
